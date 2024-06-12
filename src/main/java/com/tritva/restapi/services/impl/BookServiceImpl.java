@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import com.tritva.restapi.domain.Book;
@@ -12,7 +13,11 @@ import com.tritva.restapi.domain.BookEntity;
 import com.tritva.restapi.repositories.BookRepository;
 import com.tritva.restapi.services.BookService;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Service
+@Slf4j
+
 public class BookServiceImpl implements BookService {
 
 
@@ -68,6 +73,18 @@ public class BookServiceImpl implements BookService {
     @Override
     public boolean isBookExists(Book book){
         return bookRepository.existsById(book.getIsbn());
+    }
+
+    @Override
+    public void deleteBookById(String isbn){
+        try {
+            bookRepository.deleteById(isbn);
+
+        } catch (final EmptyResultDataAccessException ex) {
+            log.debug("Attemted to delete non-existing book",ex);
+            
+        }
+
     }
 
 

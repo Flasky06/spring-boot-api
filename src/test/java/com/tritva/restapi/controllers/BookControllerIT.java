@@ -5,8 +5,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType; // Import MediaType from org.springframework.http
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext; // Import MediaType from org.springframework.http
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -34,7 +34,7 @@ public class BookControllerIT {
 
 
     @Test
-    public void testThatBookIsCreated() throws Exception {
+    public void testThatBookIsCreatedReturnsHttp200() throws Exception {
         final Book book = TestData.testBook();
 
         final ObjectMapper objectMapper = new ObjectMapper();
@@ -44,6 +44,26 @@ public class BookControllerIT {
         mockMvc.perform(MockMvcRequestBuilders.put("/books/" + book.getIsbn())
         .contentType(MediaType.APPLICATION_JSON)
         .content(bookJson))      
+        .andExpect(MockMvcResultMatchers.jsonPath("$.isbn").value(book.getIsbn()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(book.getTitle()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.author").value(book.getAuthor()));
+    }
+
+    @Test
+    public void testThatBookIsUpdatedReturnsHttp201() throws Exception {
+        final Book book = TestData.testBook();
+        bookService.save(book);
+
+        book.setAuthor("Virginia Wolf");
+
+        final ObjectMapper objectMapper = new ObjectMapper();
+
+        final String bookJson = objectMapper.writeValueAsString(book);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/books/" + book.getIsbn())
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(bookJson))    
+        .andExpect(MockMvcResultMatchers.status().isOk())  
         .andExpect(MockMvcResultMatchers.jsonPath("$.isbn").value(book.getIsbn()))
         .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(book.getTitle()))
         .andExpect(MockMvcResultMatchers.jsonPath("$.author").value(book.getAuthor()));
@@ -87,6 +107,24 @@ public class BookControllerIT {
         
     }
 
+    @Test
+    public void testThatHttp204isReturnedWhenBookDoesntExist() throws Exception{
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/books/123123"))
+        .andExpect(MockMvcResultMatchers.status().isNoContent());
+
+    }
+
+    @Test
+    public void testThatHttp204IsReturnedWhenExistingBookIsDeleted()throws Exception{
+        final Book book =TestData.testBook();
+        bookService.save(book);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/books/"+ book.getIsbn()))
+        .andExpect(MockMvcResultMatchers.status().isNoContent());
+    }
+
+
+
    
 }
-

@@ -10,6 +10,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -94,6 +96,13 @@ public class BookServiceImplTest {
         when(bookRepository.existsById(any())).thenReturn(true);
         final boolean result = underTest.isBookExists(testBook());
         assertEquals(true,result);
+    }
+
+    @Test
+    public void testDeleteBookDeletesBook(){
+        final String isbn ="123123123";
+        underTest.deleteBookById(isbn);
+        verify(bookRepository,times(1)).deleteById(eq(isbn));
     }
     
 }
