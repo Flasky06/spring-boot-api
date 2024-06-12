@@ -26,27 +26,36 @@ public class BookController {
     }
 
     @PutMapping(path="/books/{isbn}")
-    public ResponseEntity<Book> createBook(@PathVariable final String isbn,@RequestBody final Book book){
-
+    public ResponseEntity<Book> createUpdateBook( @PathVariable final String isbn,
+    @RequestBody final Book book){
         book.setIsbn(isbn);
-        final Book savedBook =bookService.create(book);
 
-        final ResponseEntity<Book>response= new ResponseEntity<Book>(savedBook,HttpStatus.CREATED);
-        return response;
+        final boolean isBookExists = bookService.isBookExists(book);
+
+        final Book savedBook =bookService.save(book);
+
+        if(isBookExists){               
+            return new ResponseEntity<Book>(savedBook,HttpStatus.OK);
+
+        }else{
+            return new ResponseEntity<Book>(savedBook,HttpStatus.CREATED);
+        }
+
+        
     }
 
     @GetMapping(path="/books/{isbn}")
     public ResponseEntity<Book> retrievedBook(@PathVariable final String isbn){
         final Optional<Book> foundBook = bookService.findById(isbn);
 
-        return foundBook.map(book->new ResponseEntity<>(book,HttpStatus.OK))
-        .orElse(new ResponseEntity<>(HttpStatus.NOT_ACCEPTABLE));  
+        return foundBook.map(book->new ResponseEntity<Book>(book,HttpStatus.OK))
+        .orElse(new ResponseEntity<Book>(HttpStatus.NOT_FOUND));  
     }
 
     @GetMapping(path="/books")
     public ResponseEntity<List<Book>> listBooks(){
         return new ResponseEntity<List<Book>>(bookService.listBooks(),HttpStatus.OK);
-    
+
     }
 
 

@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType; // Import MediaType from org.springframework.http
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -19,6 +21,7 @@ import com.tritva.restapi.services.BookService;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ExtendWith(SpringExtension.class)
+@DirtiesContext(classMode=ClassMode.BEFORE_EACH_TEST_METHOD)
 
 public class BookControllerIT {
 
@@ -49,14 +52,14 @@ public class BookControllerIT {
 
     @Test
     public void testThatRetrievedBookReturns404WhenBookNotFound() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/books/123123123")).andExpect(MockMvcResultMatchers.status().isFound());
+        mockMvc.perform(MockMvcRequestBuilders.get("/books/123123123")).andExpect(MockMvcResultMatchers.status().isNotFound());
 
     }
 
     @Test
     public void testThatRetrievedBookReturnsHttp200WhenExists()throws Exception {
         final Book book =TestData.testBook();
-        bookService.create(book);
+        bookService.save(book);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/books/"+ book.getIsbn())).andExpect(MockMvcResultMatchers.status().isOk())
         .andExpect(MockMvcResultMatchers.jsonPath("$.isbn").value(book.getIsbn()))
@@ -65,10 +68,25 @@ public class BookControllerIT {
 
     }
 
-    // @Test
-    // public void testThatListBooksReturnsHttp200EmptyListWhenNoBooksExists()throws Exception{
+    @Test
+    public void testThatListBooksReturnsHttp200EmptyListWhenNoBooksExist() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/books")).andExpect(MockMvcResultMatchers.status().isOk()).andExpect(MockMvcResultMatchers.content().string("[]"));
+       
+    }
 
-    // mockMvc.perform(MockMvcRequestBuilders.get("/books")).andExpect(MockMvcResultMatchers.status().isOk()).andExpect(MockMvcResultMatchers.content().string("[]"));
+    @Test
+    public void testThatListBooksReturnsHttp200AndBooksWhenBooksExist() throws Exception{
+        final Book book =TestData.testBook();
+        bookService.save(book);
 
-    // }
+        mockMvc.perform(MockMvcRequestBuilders.get("/books"))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.[0].isbn").value(book.getIsbn()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.[0].title").value(book.getTitle()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.[0].author").value(book.getAuthor()));
+        
+    }
+
+   
 }
+

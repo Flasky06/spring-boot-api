@@ -6,6 +6,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -35,13 +36,12 @@ public class BookServiceImplTest {
 
         when(bookRepository.save(eq(bookEntity))).thenReturn(bookEntity);
 
-        final Book result = underTest.create(book);
+        final Book result = underTest.save(book);
         assertEquals(book, result);
-
     }
 
     @Test
-    public void testThatBookReturnsEmptyWhenNoBook(){
+    public void testThatFindByIdReturnsEmptyWhenNoBook(){
         final String isbn = "123123123";
 
         when(bookRepository.findById(eq(isbn))).thenReturn(Optional.empty());
@@ -53,7 +53,7 @@ public class BookServiceImplTest {
 
 
     @Test
-    public void testThatBookReturnsBookWhenExists(){
+    public void testThatFindByIdReturnsBookWhenExists(){
         final Book book =testBook();
         final BookEntity bookEntity =testBookEntity();
 
@@ -65,13 +65,13 @@ public class BookServiceImplTest {
     }
 
     @Test
-    public void testLIstBooksReturnsEmptyListWhenNoBooksExists(){
+    public void testListBooksReturnsEmptyListWhenNoBooksExists(){
         final List<Book> result = underTest.listBooks();
         assertEquals(0, result.size());
     }
 
     @Test 
-    public void testListBooksReturnsBooksExists(){
+    public void testListBooksReturnsBooksWhenExists(){
 
         final BookEntity bookEntity =testBookEntity();
 
@@ -82,5 +82,18 @@ public class BookServiceImplTest {
         assertEquals(1, result.size());
     }
 
+    @Test
+    public void testsIsBookExistsReturnsFalseWhenBookDoesnExist(){     
+        when(bookRepository.existsById(any())).thenReturn(false);
+        final boolean result = underTest.isBookExists(testBook());
+        assertEquals(false,result);
+    }
+
+    @Test
+    public void testsIsBookExistsReturnsTrueWhenBookDoesnExist(){     
+        when(bookRepository.existsById(any())).thenReturn(true);
+        final boolean result = underTest.isBookExists(testBook());
+        assertEquals(true,result);
+    }
     
 }

@@ -6,8 +6,10 @@ import java.util.Optional;
 import com.tritva.restapi.domain.Book;
 
 public interface BookService {
+
+        boolean isBookExists(Book book);
     
-        Book create(Book book);
+        Book save(Book book);
 
         Optional<Book> findById(String isbn);
 
