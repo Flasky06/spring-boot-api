@@ -1,5 +1,8 @@
 package com.tritva.restapi.services.impl;
 
+import java.util.List;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,5 +37,50 @@ public class BookServiceImplTest {
 
         final Book result = underTest.create(book);
         assertEquals(book, result);
+
     }
+
+    @Test
+    public void testThatBookReturnsEmptyWhenNoBook(){
+        final String isbn = "123123123";
+
+        when(bookRepository.findById(eq(isbn))).thenReturn(Optional.empty());
+
+        final Optional<Book> result =  underTest.findById(isbn);
+
+        assertEquals(Optional.empty(), result);
+    }
+
+
+    @Test
+    public void testThatBookReturnsBookWhenExists(){
+        final Book book =testBook();
+        final BookEntity bookEntity =testBookEntity();
+
+        when(bookRepository.findById(eq(book.getIsbn()))).thenReturn(Optional.of(bookEntity));
+
+        final Optional<Book> result =  underTest.findById(book.getIsbn());
+
+        assertEquals(Optional.of(book), result);
+    }
+
+    @Test
+    public void testLIstBooksReturnsEmptyListWhenNoBooksExists(){
+        final List<Book> result = underTest.listBooks();
+        assertEquals(0, result.size());
+    }
+
+    @Test 
+    public void testListBooksReturnsBooksExists(){
+
+        final BookEntity bookEntity =testBookEntity();
+
+        when(bookRepository.findAll()).thenReturn(List.of(bookEntity));
+
+        final List<Book> result =underTest.listBooks();
+
+        assertEquals(1, result.size());
+    }
+
+    
 }

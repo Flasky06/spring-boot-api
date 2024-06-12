@@ -14,14 +14,21 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tritva.restapi.TestData;
 import com.tritva.restapi.domain.Book;
+import com.tritva.restapi.services.BookService;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ExtendWith(SpringExtension.class)
+
 public class BookControllerIT {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private BookService bookService;
+
+
 
     @Test
     public void testThatBookIsCreated() throws Exception {
@@ -38,4 +45,30 @@ public class BookControllerIT {
         .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(book.getTitle()))
         .andExpect(MockMvcResultMatchers.jsonPath("$.author").value(book.getAuthor()));
     }
+
+
+    @Test
+    public void testThatRetrievedBookReturns404WhenBookNotFound() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.get("/books/123123123")).andExpect(MockMvcResultMatchers.status().isFound());
+
+    }
+
+    @Test
+    public void testThatRetrievedBookReturnsHttp200WhenExists()throws Exception {
+        final Book book =TestData.testBook();
+        bookService.create(book);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/books/"+ book.getIsbn())).andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(MockMvcResultMatchers.jsonPath("$.isbn").value(book.getIsbn()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.title").value(book.getTitle()))
+        .andExpect(MockMvcResultMatchers.jsonPath("$.author").value(book.getAuthor()));
+
+    }
+
+    // @Test
+    // public void testThatListBooksReturnsHttp200EmptyListWhenNoBooksExists()throws Exception{
+
+    // mockMvc.perform(MockMvcRequestBuilders.get("/books")).andExpect(MockMvcResultMatchers.status().isOk()).andExpect(MockMvcResultMatchers.content().string("[]"));
+
+    // }
 }
